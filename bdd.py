@@ -43,33 +43,44 @@ def load_user(user_id):
 def home():
     return redirect(url_for('login'))
 
-@app.route('/register', methods=['GET', 'POST'])
-def register():
+class User(db.Model, UserMixin):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(150), unique=True, nullable=False)
+    email = db.Column(db.String(150), unique=True, nullable=False)
+    password = db.Column(db.String(150), nullable=False)
+    is_default_password = db.Column(db.Boolean, default=True)  # Nouveau champ
+    created_at = db.Column(db.DateTime, default=db.func.now())
+
+@app.route('/change-password', methods=['GET', 'POST'])
+@login_required
+def change_password():
     if request.method == 'POST':
-        username = request.form.get('username')
-        email = request.form.get('email')
-        password = request.form.get('password')
+        old_password = request.form.get('old_password')
+        new_password = request.form.get('new_password')
+        confirm_password = request.form.get('confirm_password')
 
-        if not username or not email or not password:
+        if not old_password or not new_password or not confirm_password:
             flash('Tous les champs sont obligatoires.', 'danger')
-            return redirect(url_for('register'))
+            return redirect(url_for('change_password'))
 
-        if User.query.filter_by(username=username).first():
-            flash('Nom d\'utilisateur déjà pris.', 'danger')
-            return redirect(url_for('register'))
+        if not bcrypt.check_password_hash(current_user.password, old_password):
+            flash('Ancien mot de passe incorrect.', 'danger')
+            return redirect(url_for('change_password'))
 
-        if User.query.filter_by(email=email).first():
-            flash('Adresse e-mail déjà utilisée.', 'danger')
-            return redirect(url_for('register'))
+        if new_password != confirm_password:
+            flash('Les nouveaux mots de passe ne correspondent pas.', 'danger')
+            return redirect(url_for('change_password'))
 
-        hashed_password = bcrypt.generate_password_hash(password).decode('utf-8')
-        user = User(username=username, email=email, password=hashed_password)
-        db.session.add(user)
+        # Mise à jour du mot de passe
+        hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
+        current_user.password = hashed_password
+        current_user.is_default_password = False  # Marque le mot de passe comme non par défaut
         db.session.commit()
 
-        flash('Compte créé avec succès ! Connectez-vous.', 'success')
-        return redirect(url_for('login'))
-    return render_template('register.html')
+        flash('Mot de passe mis à jour avec succès.', 'success')
+        return redirect(url_for('dashboard'))
+
+    return render_template('change_password.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -107,6 +118,20 @@ def logout():
 # Initialisation de la base de données
 with app.app_context():
     db.create_all()
+
+    # Vérification ou création de l'administrateur par défaut
+    admin_user = User.query.filter_by(username='admin').first()
+    if not admin_user:
+        default_password = bcrypt.generate_password_hash('admin').decode('utf-8')
+        admin_user = User(
+            username='admin',
+            email='admin@example.com',
+            password=default_password,
+            is_default_password=True  # Marque le mot de passe comme par défaut
+        )
+        db.session.add(admin_user)
+        db.session.commit()
+        print("Compte administrateur créé : Nom d'utilisateur = 'admin', Mot de passe = 'admin'")
 
 if __name__ == '__main__':
     app.run(debug=True)
