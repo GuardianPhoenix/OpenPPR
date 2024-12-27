@@ -34,7 +34,7 @@ class ChecklistItem(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     project_id = db.Column(db.Integer, db.ForeignKey('project.id'), nullable=False)
     item_text = db.Column(db.String(300), nullable=False)
-    is_completed = db.Column(db.Boolean, default=False)
+    is_completed = db.Column(db.Boolean, default=False)  # Champ pour l'état
 
 @login_manager.user_loader
 def load_user(user_id):
@@ -44,6 +44,27 @@ def load_user(user_id):
 @app.route('/')
 def home():
     return redirect(url_for('login'))
+
+@app.route('/save_checklist/<int:project_id>', methods=['POST'])
+@login_required
+def save_checklist(project_id):
+    # Vérifier que le projet appartient à l'utilisateur connecté
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first()
+    if not project:
+        flash("Projet introuvable ou non autorisé.", "danger")
+        return redirect(url_for('dashboard'))
+
+    # Parcourir les items de la checklist liés au projet
+    checklist_items = ChecklistItem.query.filter_by(project_id=project_id).all()
+    for item in checklist_items:
+        # Vérifier si l'item est coché dans le formulaire
+        checkbox_state = request.form.get(f"checklist_item_{item.id}", "0")
+        item.is_completed = (checkbox_state == "1")
+
+    # Sauvegarder les changements
+    db.session.commit()
+    flash("Checklist mise à jour avec succès !", "success")
+    return redirect(url_for('dashboard'))
 
 @app.route('/switch_project/<int:project_id>', methods=['GET'])
 @login_required

@@ -143,29 +143,38 @@
     </div>
 
     <div class="container my-5">
-      <!-- Vérifier si un projet est sélectionné -->
       {% if current_project %}
         <section id="checklist">
           <h2>Checklist pour {{ current_project.name }}</h2>
           
-          {% if checklist_items %}
-            <ul class="list-group">
-              {% for item in checklist_items %}
-                <li class="list-group-item">
-                  <input type="checkbox" class="check-item form-check-input me-2" {% if item.is_completed %}checked{% endif %}>
-                  {{ item.item_text }}
-                </li>
-              {% endfor %}
-            </ul>
-          {% else %}
-            <p>Aucune checklist disponible pour ce projet.</p>
-          {% endif %}
+          <form method="POST" action="{{ url_for('save_checklist', project_id=current_project.id) }}">
+            {% if checklist_items %}
+              <ul class="list-group">
+                {% for item in checklist_items %}
+                  <li class="list-group-item">
+                    <input 
+                      type="checkbox" 
+                      class="check-item form-check-input me-2" 
+                      name="checklist_item_{{ item.id }}" 
+                      value="1" 
+                      {% if item.is_completed %}checked{% endif %}
+                    >
+                    {{ item.item_text }}
+                  </li>
+                {% endfor %}
+              </ul>
+              <div class="text-center mt-3">
+                <button type="submit" class="btn btn-primary">Enregistrer</button>
+              </div>
+            {% else %}
+              <p>Aucune checklist disponible pour ce projet.</p>
+            {% endif %}
+          </form>
         </section>
       {% else %}
         <p class="text-center">Veuillez sélectionner un projet pour voir la checklist.</p>
       {% endif %}
     </div>
-
 
     <!-- Section Rapport -->
     <section id="reporting" class="checklist-section">
