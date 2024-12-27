@@ -1,1 +1,1 @@
-/templates/openppr.db
+Outil de checklist en pentest
