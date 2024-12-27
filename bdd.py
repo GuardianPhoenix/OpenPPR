@@ -108,6 +108,35 @@ def logout():
     flash('Déconnecté avec succès.', 'info')
     return redirect(url_for('login'))
 
+
+@app.route('/projects', methods=['GET', 'POST'])
+@login_required
+def projects():
+    if request.method == 'POST':
+        # Récupérer les données du formulaire
+        name = request.form.get('name')
+        company_name = request.form.get('company_name')
+
+        if not name or not company_name:
+            flash("Tous les champs sont obligatoires.", "danger")
+            return redirect(url_for('projects'))
+
+        # Créer un nouveau projet
+        new_project = Project(
+            user_id=current_user.id,
+            name=name,
+            company_name=company_name
+        )
+        db.session.add(new_project)
+        db.session.commit()
+        flash("Projet ajouté avec succès !", "success")
+        return redirect(url_for('projects'))
+
+    # Récupérer les projets existants pour l'utilisateur connecté
+    user_projects = Project.query.filter_by(user_id=current_user.id).all()
+    return render_template('projects.html', projects=user_projects)
+
+
 # Initialisation de la base de données
 with app.app_context():
     db.create_all()
