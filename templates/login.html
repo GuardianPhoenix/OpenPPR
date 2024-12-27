@@ -38,15 +38,14 @@
       margin-bottom: 25px;
     }
     .error-message {
-      color: #fff; /* Couleur blanche pour le texte */
-      background: rgba(255, 99, 71, 0.2); /* Fond légèrement transparent */
+      color: #fff;
+      background: rgba(255, 99, 71, 0.2);
       border: 1px solid rgba(255, 99, 71, 0.6);
       padding: 10px;
       border-radius: 10px;
       margin-bottom: 20px;
       font-size: 14px;
       text-align: center;
-      display: none;
     }
     input {
       width: 90%;
@@ -101,9 +100,18 @@
 <body>
   <div class="container">
     <h1>Connexion</h1>
-    <div class="error-message" id="error-message">
-      Login ou mot de passe incorrect.
-    </div>
+    
+    <!-- Afficher les messages flash -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="error-message">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+    
     <form method="POST" action="/login">
       <div class="form-group">
         <input type="text" name="username" placeholder="Nom d'utilisateur" required>

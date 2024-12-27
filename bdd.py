@@ -83,18 +83,16 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
 
-        if not username or not password:
-            flash('Tous les champs sont obligatoires.', 'danger')
-            return redirect(url_for('login'))
-
         user = User.query.filter_by(username=username).first()
 
-        if user and bcrypt.check_password_hash(user.password, password):
-            login_user(user)
-            flash('Connexion réussie !', 'success')
-            return redirect(url_for('dashboard'))
+        if not user or not bcrypt.check_password_hash(user.password, password):
+            flash('Login ou mot de passe incorrect.', 'danger')
+            return redirect(url_for('login'))
 
-        flash('Nom d\'utilisateur ou mot de passe incorrect.', 'danger')
+        login_user(user)
+        flash('Connexion réussie !', 'success')
+        return redirect(url_for('dashboard'))
+
     return render_template('login.html')
 
 @app.route('/dashboard')
