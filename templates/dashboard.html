@@ -22,7 +22,7 @@
   <!-- Navbar -->
   <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
     <div class="container-fluid">
-      <a class="navbar-brand" href="#">Checklist Pentest</a>
+      <a class="navbar-brand" href="#">Open PPR</a>
       <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Basculer la navigation">
         <span class="navbar-toggler-icon"></span>
       </button>
@@ -51,10 +51,18 @@
               Menu
             </a>
             <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
-              <li><a class="dropdown-item" href="/changepassword">Changer le mot de passe</a></li>
-              <li><a class="dropdown-item" href="/projects">Projets</a></li>
+              <!-- Changer le projet -->
+              <li>
+                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#projectModal">Changer de projet</a>
+              </li>
+              <!-- Définir le scope -->
+              <li>
+                <a class="dropdown-item" href="#" data-bs-toggle="modal" data-bs-target="#scopeModal">Définir le scope</a>
+              </li>
               <li><hr class="dropdown-divider"></li>
-              <li><a class="dropdown-item text-danger" href="/logout">Déconnexion</a></li>
+              <li><a class="dropdown-item" href="/changepassword">Changer le mot de passe</a></li>
+              <li><a class="dropdown-item" href="/projects">Changer/modifier un projet</a></li>
+              <li><a class="dropdown-item text-danger" href="{{ url_for('logout') }}">Déconnexion</a></li>
             </ul>
           </li>
         </ul>
@@ -62,21 +70,81 @@
     </div>
   </nav>
 
-  <div class="container">
-    <!-- Dashboard Section -->
-    <section id="dashboard" class="my-5">
+  <!-- Modal : Changer de projet -->
+  <div class="modal fade" id="projectModal" tabindex="-1" aria-labelledby="projectModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="projectModalLabel">Sélectionner un projet</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <ul class="list-group">
+            {% for project in projects %}
+              <li class="list-group-item">
+                <a href="{{ url_for('switch_project', project_id=project.id) }}">{{ project.name }}</a>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<!-- Modal : Définir le scope -->
+<div class="modal fade" id="scopeModal" tabindex="-1" aria-labelledby="scopeModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="scopeModalLabel">Définir le Scope</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="scopeForm" method="POST" action="{{ url_for('set_scope') }}">
+        <div class="modal-body">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="scope[]" value="web" id="scopeWeb">
+            <label class="form-check-label" for="scopeWeb">Site Web</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="scope[]" value="linux" id="scopeLinux">
+            <label class="form-check-label" for="scopeLinux">Linux</label>
+          </div>
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="scope[]" value="windows" id="scopeWindows">
+            <label class="form-check-label" for="scopeWindows">Windows</label>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+          <button type="submit" class="btn btn-primary">Enregistrer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+<div class="container my-5">
+
+
+<div class="container">
+  <!-- Dashboard Section -->
+  <section id="dashboard" class="my-5">
       <header>
-        <h1 class="text-center">Bienvenue, {{ current_user.username }}</h1>
+          <h1 class="text-center">Bienvenue, {{ current_user.username }}</h1>
       </header>
-      <h2 class="mt-4">Projets</h2>
-      <ul class="list-group">
-        {% for project in projects %}
-          <li class="list-group-item">{{ project.name }} - {{ project.company_name }}</li>
-        {% else %}
-          <p>Pas de projets.</p>
-        {% endfor %}
-      </ul>
-    </section>
+      <h2 class="mt-4">Projet sélectionné</h2>
+      {% if current_project %}
+          <div class="card">
+              <div class="card-body">
+                  <h5 class="card-title">{{ current_project.name }}</h5>
+                  <p class="card-text">Entreprise : {{ current_project.company_name }}</p>
+                  <p class="card-text">Date de création : {{ current_project.created_at.strftime('%d/%m/%Y') }}</p>
+              </div>
+          </div>
+      {% else %}
+          <p>Aucun projet sélectionné. Veuillez en choisir un dans le menu.</p>
+      {% endif %}
+  </section>
+</div>
 
     <!-- Checklist Sections -->
     <header class="my-5">
@@ -91,62 +159,30 @@
       </div>
     </div>
 
-    <!-- Section Pré-engagement -->
-    <section id="pre-engagement" class="checklist-section">
-      <h2>Pré-engagement</h2>
-      <ul class="list-group">
-        <li class="list-group-item">
-          <input type="checkbox" id="nda" class="check-item form-check-input me-2" />
-          <label for="nda">Sécuriser un accord de non-divulgation (NDA).</label>
-        </li>
-        <li class="list-group-item">
-          <input type="checkbox" id="authorization" class="check-item form-check-input me-2" />
-          <label for="authorization">Obtenir une autorisation écrite et formelle pour les tests.</label>
-        </li>
-        <li class="list-group-item">
-          <input type="checkbox" id="legal-compliance" class="check-item form-check-input me-2" />
-          <label for="legal-compliance">S'assurer de la conformité juridique avec les lois et règlements en vigueur.</label>
-        </li>
-      </ul>
-    </section>
+    <div class="container my-5">
+      <!-- Vérifier si un projet est sélectionné -->
+      {% if current_project %}
+        <section id="checklist">
+          <h2>Checklist pour {{ current_project.name }}</h2>
+          
+          {% if checklist_items %}
+            <ul class="list-group">
+              {% for item in checklist_items %}
+                <li class="list-group-item">
+                  <input type="checkbox" class="check-item form-check-input me-2" {% if item.is_completed %}checked{% endif %}>
+                  {{ item.item_text }}
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p>Aucune checklist disponible pour ce projet.</p>
+          {% endif %}
+        </section>
+      {% else %}
+        <p class="text-center">Veuillez sélectionner un projet pour voir la checklist.</p>
+      {% endif %}
+    </div>
 
-    <!-- Section Collecte d'informations -->
-    <section id="info-gathering" class="checklist-section">
-      <h2>Collecte d'informations</h2>
-      <ul class="list-group">
-        <li class="list-group-item">
-          <input type="checkbox" id="whois" class="check-item form-check-input me-2" />
-          <label for="whois">Effectuer des recherches WHOIS et analyser les informations d'enregistrement de domaine.</label>
-        </li>
-        <li class="list-group-item">
-          <input type="checkbox" id="osint" class="check-item form-check-input me-2" />
-          <label for="osint">Utiliser des techniques d'intelligence open source (OSINT).</label>
-        </li>
-        <li class="list-group-item">
-          <input type="checkbox" id="dns-analysis" class="check-item form-check-input me-2" />
-          <label for="dns-analysis">Réaliser une analyse DNS et énumérer les sous-domaines.</label>
-        </li>
-      </ul>
-    </section>
-
-    <!-- Section Analyse des Vulnérabilités -->
-    <section id="vuln-analysis" class="checklist-section">
-      <h2>Analyse des Vulnérabilités</h2>
-      <ul class="list-group">
-        <li class="list-group-item">
-          <input type="checkbox" id="sql-injection" class="check-item form-check-input me-2" />
-          <label for="sql-injection">Analyser les applications pour détecter les vulnérabilités SQL Injection.</label>
-        </li>
-        <li class="list-group-item">
-          <input type="checkbox" id="xss" class="check-item form-check-input me-2" />
-          <label for="xss">Analyser les applications pour détecter les vulnérabilités XSS.</label>
-        </li>
-        <li class="list-group-item">
-          <input type="checkbox" id="csrf" class="check-item form-check-input me-2" />
-          <label for="csrf">Analyser les applications pour détecter les vulnérabilités CSRF.</label>
-        </li>
-      </ul>
-    </section>
 
     <!-- Section Rapport -->
     <section id="reporting" class="checklist-section">

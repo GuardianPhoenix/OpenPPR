@@ -1,6 +1,7 @@
 from flask import Flask, render_template, redirect, url_for, request, flash
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
+from flask import session
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
 app = Flask(__name__)
@@ -44,7 +45,68 @@ def load_user(user_id):
 def home():
     return redirect(url_for('login'))
 
+@app.route('/switch_project/<int:project_id>', methods=['GET'])
+@login_required
+def switch_project(project_id):
+    # Vérifier que le projet appartient à l'utilisateur connecté
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first()
+    if not project:
+        flash("Projet introuvable ou non autorisé.", "danger")
+        return redirect(url_for('dashboard'))
 
+    # Stocker l'ID du projet dans la session
+    session['current_project_id'] = project.id
+    flash(f"Projet '{project.name}' sélectionné.", "success")
+    return redirect(url_for('dashboard'))
+
+@app.route('/set_scope', methods=['POST'])
+@login_required
+def set_scope():
+    selected_scopes = request.form.getlist('scope[]')
+    current_project_id = session.get('current_project_id')
+    
+    if not current_project_id:
+        flash("Veuillez sélectionner un projet avant de définir le scope.", "danger")
+        return redirect(url_for('dashboard'))
+    
+    # Ajouter des tâches en fonction du scope
+    tasks = []
+    if 'web' in selected_scopes:
+        tasks.extend([
+            "Effectuer des recherches WHOIS",
+            "Analyser les vulnérabilités OWASP",
+            "Vérifier les headers HTTP"
+        ])
+    if 'linux' in selected_scopes:
+        tasks.extend([
+            "Vérifier les permissions des fichiers sensibles",
+            "Analyser les configurations SSH",
+            "Auditer les utilisateurs et groupes"
+        ])
+    
+    for task in tasks:
+        new_item = ChecklistItem(project_id=current_project_id, item_text=task)
+        db.session.add(new_item)
+
+    db.session.commit()
+    flash("Scope défini et checklist mise à jour.", "success")
+    return redirect(url_for('dashboard'))
+
+
+@app.route('/delete_project/<int:project_id>', methods=['POST'])
+@login_required
+def delete_project(project_id):
+    # Vérifier que le projet appartient à l'utilisateur connecté
+    project = Project.query.filter_by(id=project_id, user_id=current_user.id).first()
+    if not project:
+        flash("Projet introuvable ou non autorisé.", "danger")
+        return redirect(url_for('projects'))
+
+    # Supprimer le projet
+    db.session.delete(project)
+    db.session.commit()
+    flash(f"Projet '{project.name}' supprimé avec succès.", "success")
+    return redirect(url_for('projects'))
 
 @app.route('/changepassword', methods=['GET', 'POST'])
 @login_required
@@ -77,6 +139,8 @@ def changepassword():
 
     return render_template('changepassword.html')
 
+
+
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
@@ -98,15 +162,26 @@ def login():
 @app.route('/dashboard')
 @login_required
 def dashboard():
+    # Récupérer tous les projets pour le menu
     projects = Project.query.filter_by(user_id=current_user.id).all()
-    return render_template('dashboard.html', projects=projects)
+    
+    # Récupérer le projet actuel depuis la session
+    current_project_id = session.get('current_project_id')
+    current_project = None
+    checklist_items = []
 
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    flash('Déconnecté avec succès.', 'info')
-    return redirect(url_for('login'))
+    if current_project_id:
+        current_project = Project.query.filter_by(id=current_project_id, user_id=current_user.id).first()
+        if current_project:
+            # Exemple : Checklist spécifique au projet
+            checklist_items = ChecklistItem.query.filter_by(project_id=current_project_id).all()
+
+    return render_template(
+        'dashboard.html',
+        projects=projects,
+        current_project=current_project,
+        checklist_items=checklist_items
+    )
 
 
 @app.route('/projects', methods=['GET', 'POST'])
@@ -136,6 +211,13 @@ def projects():
     user_projects = Project.query.filter_by(user_id=current_user.id).all()
     return render_template('projects.html', projects=user_projects)
 
+
+@app.route('/logout')
+@login_required
+def logout():
+    logout_user()
+    flash('Déconnecté avec succès.', 'info')
+    return redirect(url_for('login'))
 
 # Initialisation de la base de données
 with app.app_context():
