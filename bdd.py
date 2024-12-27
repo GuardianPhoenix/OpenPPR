@@ -19,6 +19,7 @@ class User(db.Model, UserMixin):
     username = db.Column(db.String(150), unique=True, nullable=False)
     email = db.Column(db.String(150), unique=True, nullable=False)
     password = db.Column(db.String(150), nullable=False)
+    is_default_password = db.Column(db.Boolean, default=True)  # Nouveau champ
     created_at = db.Column(db.DateTime, default=db.func.now())
 
 class Project(db.Model):
@@ -43,13 +44,7 @@ def load_user(user_id):
 def home():
     return redirect(url_for('login'))
 
-class User(db.Model, UserMixin):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-    is_default_password = db.Column(db.Boolean, default=True)  # Nouveau champ
-    created_at = db.Column(db.DateTime, default=db.func.now())
+
 
 @app.route('/change-password', methods=['GET', 'POST'])
 @login_required
