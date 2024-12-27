@@ -46,9 +46,9 @@ def home():
 
 
 
-@app.route('/change-password', methods=['GET', 'POST'])
+@app.route('/changepassword', methods=['GET', 'POST'])
 @login_required
-def change_password():
+def changepassword():
     if request.method == 'POST':
         old_password = request.form.get('old_password')
         new_password = request.form.get('new_password')
@@ -56,15 +56,15 @@ def change_password():
 
         if not old_password or not new_password or not confirm_password:
             flash('Tous les champs sont obligatoires.', 'danger')
-            return redirect(url_for('change_password'))
+            return redirect(url_for('changepassword'))
 
         if not bcrypt.check_password_hash(current_user.password, old_password):
             flash('Ancien mot de passe incorrect.', 'danger')
-            return redirect(url_for('change_password'))
+            return redirect(url_for('changepassword'))
 
         if new_password != confirm_password:
             flash('Les nouveaux mots de passe ne correspondent pas.', 'danger')
-            return redirect(url_for('change_password'))
+            return redirect(url_for('changepassword'))
 
         # Mise à jour du mot de passe
         hashed_password = bcrypt.generate_password_hash(new_password).decode('utf-8')
@@ -75,7 +75,7 @@ def change_password():
         flash('Mot de passe mis à jour avec succès.', 'success')
         return redirect(url_for('dashboard'))
 
-    return render_template('change_password.html')
+    return render_template('changepassword.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
