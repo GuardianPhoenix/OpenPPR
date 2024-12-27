@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard & Checklist</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.4.0/dist/jspdf.umd.min.js"></script>
   <style>
+    
     body {
       padding-top: 56px;
     }
@@ -27,12 +27,36 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav me-auto">
+          <li class="nav-item">
+            <a class="nav-link active" href="#dashboard">Tableau de Bord</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#pre-engagement">Pré-engagement</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#info-gathering">Collecte d'informations</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#vuln-analysis">Analyse des Vulnérabilités</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#reporting">Rapport</a>
+          </li>
+        </ul>
+        <!-- Menu utilisateur -->
         <ul class="navbar-nav">
-          <li class="nav-item"><a class="nav-link" href="#dashboard">Tableau de Bord</a></li>
-          <li class="nav-item"><a class="nav-link" href="#pre-engagement">Pré-engagement</a></li>
-          <li class="nav-item"><a class="nav-link" href="#info-gathering">Collecte d'informations</a></li>
-          <li class="nav-item"><a class="nav-link" href="#vuln-analysis">Analyse des Vulnérabilités</a></li>
-          <li class="nav-item"><a class="nav-link" href="#reporting">Rapport</a></li>
+          <li class="nav-item dropdown">
+            <a class="nav-link dropdown-toggle" href="#" id="userMenu" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+              Menu
+            </a>
+            <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userMenu">
+              <li><a class="dropdown-item" href="/changepassword">Changer le mot de passe</a></li>
+              <li><a class="dropdown-item" href="/projects">Projets</a></li>
+              <li><hr class="dropdown-divider"></li>
+              <li><a class="dropdown-item text-danger" href="/logout">Déconnexion</a></li>
+            </ul>
+          </li>
         </ul>
       </div>
     </div>
@@ -43,7 +67,6 @@
     <section id="dashboard" class="my-5">
       <header>
         <h1 class="text-center">Bienvenue, {{ current_user.username }}</h1>
-        <a href="/logout" class="btn btn-danger">Déconnexion</a>
       </header>
       <h2 class="mt-4">Projets</h2>
       <ul class="list-group">
@@ -59,7 +82,6 @@
     <header class="my-5">
       <h1 class="text-center">Checklist de Tests d'Intrusion</h1>
       <p class="text-center">Une checklist complète pour guider votre processus de tests d'intrusion.</p>
-      <input id="search" type="text" class="form-control" placeholder="Rechercher dans la checklist...">
     </header>
 
     <div class="progress-container">
@@ -74,15 +96,15 @@
       <h2>Pré-engagement</h2>
       <ul class="list-group">
         <li class="list-group-item">
-          <input type="checkbox" id="nda" class="form-check-input me-2" />
+          <input type="checkbox" id="nda" class="check-item form-check-input me-2" />
           <label for="nda">Sécuriser un accord de non-divulgation (NDA).</label>
         </li>
         <li class="list-group-item">
-          <input type="checkbox" id="authorization" class="form-check-input me-2" />
+          <input type="checkbox" id="authorization" class="check-item form-check-input me-2" />
           <label for="authorization">Obtenir une autorisation écrite et formelle pour les tests.</label>
         </li>
         <li class="list-group-item">
-          <input type="checkbox" id="legal-compliance" class="form-check-input me-2" />
+          <input type="checkbox" id="legal-compliance" class="check-item form-check-input me-2" />
           <label for="legal-compliance">S'assurer de la conformité juridique avec les lois et règlements en vigueur.</label>
         </li>
       </ul>
@@ -93,15 +115,15 @@
       <h2>Collecte d'informations</h2>
       <ul class="list-group">
         <li class="list-group-item">
-          <input type="checkbox" id="whois" class="form-check-input me-2" />
+          <input type="checkbox" id="whois" class="check-item form-check-input me-2" />
           <label for="whois">Effectuer des recherches WHOIS et analyser les informations d'enregistrement de domaine.</label>
         </li>
         <li class="list-group-item">
-          <input type="checkbox" id="osint" class="form-check-input me-2" />
+          <input type="checkbox" id="osint" class="check-item form-check-input me-2" />
           <label for="osint">Utiliser des techniques d'intelligence open source (OSINT).</label>
         </li>
         <li class="list-group-item">
-          <input type="checkbox" id="dns-analysis" class="form-check-input me-2" />
+          <input type="checkbox" id="dns-analysis" class="check-item form-check-input me-2" />
           <label for="dns-analysis">Réaliser une analyse DNS et énumérer les sous-domaines.</label>
         </li>
       </ul>
@@ -112,15 +134,15 @@
       <h2>Analyse des Vulnérabilités</h2>
       <ul class="list-group">
         <li class="list-group-item">
-          <input type="checkbox" id="sql-injection" class="form-check-input me-2" />
+          <input type="checkbox" id="sql-injection" class="check-item form-check-input me-2" />
           <label for="sql-injection">Analyser les applications pour détecter les vulnérabilités SQL Injection.</label>
         </li>
         <li class="list-group-item">
-          <input type="checkbox" id="xss" class="form-check-input me-2" />
+          <input type="checkbox" id="xss" class="check-item form-check-input me-2" />
           <label for="xss">Analyser les applications pour détecter les vulnérabilités XSS.</label>
         </li>
         <li class="list-group-item">
-          <input type="checkbox" id="csrf" class="form-check-input me-2" />
+          <input type="checkbox" id="csrf" class="check-item form-check-input me-2" />
           <label for="csrf">Analyser les applications pour détecter les vulnérabilités CSRF.</label>
         </li>
       </ul>
@@ -132,6 +154,28 @@
       <button class="btn btn-primary" id="generate-pdf">Générer le Rapport PDF</button>
     </section>
   </div>
+
+  <script>
+    // Fonction pour mettre à jour la barre de progression
+    function updateProgressBar() {
+      const checkboxes = document.querySelectorAll('.check-item'); // Toutes les cases
+      const total = checkboxes.length; // Nombre total de cases
+      const checked = document.querySelectorAll('.check-item:checked').length; // Nombre de cases cochées
+
+      const progressBar = document.getElementById('progress-bar');
+      const progress = Math.round((checked / total) * 100); // Calculer le pourcentage
+      progressBar.style.width = progress + '%'; // Mettre à jour la largeur
+      progressBar.setAttribute('aria-valuenow', progress); // Mettre à jour la valeur actuelle
+    }
+
+    // Ajouter un événement à chaque case à cocher
+    document.querySelectorAll('.check-item').forEach(checkbox => {
+      checkbox.addEventListener('change', updateProgressBar); // Appeler la fonction lors du changement d'état
+    });
+
+    // Initialiser la barre de progression au chargement
+    updateProgressBar();
+  </script>
 
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 </body>
