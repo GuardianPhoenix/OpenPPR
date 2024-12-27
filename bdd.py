@@ -127,6 +127,8 @@ with app.app_context():
         db.session.add(admin_user)
         db.session.commit()
         print("Compte administrateur créé : Nom d'utilisateur = 'admin', Mot de passe = 'admin'")
+    else:
+        print("L'utilisateur admin existe déjà.")
 
 if __name__ == '__main__':
     app.run(debug=True)
